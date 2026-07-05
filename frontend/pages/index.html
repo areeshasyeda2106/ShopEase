@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopEase — Online Store</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+  <svg width="280" height="75" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(8, 8)">
+      <rect x="0" y="18" width="48" height="40" rx="5" fill="#e94560"/>
+      <path d="M8 18 Q8 4 24 4 Q40 4 40 18" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="14" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+      <circle cx="34" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+    </g>
+    <text x="68" y="52" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#ffffff">Shop</text>
+    <text x="140" y="52" font-family="Georgia, serif" font-size="32" font-weight="400" fill="#e94560">Ease</text>
+  </svg>
+</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">🛒 Cart <span id="cartCount">0</span></a>
+      <a href="orders.html">My Orders</a>
+<a href="login.html" id="loginBtn">Login</a>
+      <a href="#" id="logoutBtn" style="display:none">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to ShopEase</h1>
+      <p>Discover amazing products at unbeatable prices</p>
+      <a href="products.html" class="btn-primary">Shop Now</a>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="featured">
+    <h2>Featured Products</h2>
+    <div class="products-grid" id="featuredProducts">
+      <p>Loading products...</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 ShopEase. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    // Load featured products
+    async function loadFeaturedProducts() {
+      try {
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        const grid = document.getElementById('featuredProducts');
+
+        if (products.length === 0) {
+          grid.innerHTML = '<p>No products yet. Check back soon!</p>';
+          return;
+        }
+
+        grid.innerHTML = products.slice(0, 4).map(p => `
+          <div class="product-card">
+            <div class="product-img">🛍️</div>
+            <h3>${p.name}</h3>
+            <p>${p.description}</p>
+            <div class="product-price">$${p.price}</div>
+            <button onclick="addToCart('${p._id}', '${p.name}', ${p.price}, ${p.stock})" class="btn-primary">
+              Add to Cart
+            </button>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('featuredProducts').innerHTML = 
+          '<p>Error loading products.</p>';
+      }
+    }
+
+    loadFeaturedProducts();
+  </script>
+</body>
+</html>

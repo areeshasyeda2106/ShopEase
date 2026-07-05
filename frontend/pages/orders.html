@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — ShopEase</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+  <svg width="280" height="75" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(8, 8)">
+      <rect x="0" y="18" width="48" height="40" rx="5" fill="#e94560"/>
+      <path d="M8 18 Q8 4 24 4 Q40 4 40 18" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="14" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+      <circle cx="34" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+    </g>
+    <text x="68" y="52" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#ffffff">Shop</text>
+    <text x="140" y="52" font-family="Georgia, serif" font-size="32" font-weight="400" fill="#e94560">Ease</text>
+  </svg>
+</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">🛒 Cart <span id="cartCount">0</span></a>
+      <a href="orders.html">My Orders</a>
+<a href="login.html" id="loginBtn">Login</a>
+      <a href="#" id="logoutBtn" style="display:none">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>My Orders</h1>
+  </div>
+
+  <!-- Orders -->
+  <div class="orders-container">
+    <div class="alert" id="alert"></div>
+    <div id="ordersList"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 ShopEase. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    async function loadOrders() {
+      if (!isLoggedIn()) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/orders/myorders', {
+          headers: {
+            'Authorization': `Bearer ${getToken()}`
+          }
+        });
+
+        const orders = await res.json();
+        const ordersList = document.getElementById('ordersList');
+
+        if (orders.length === 0) {
+          ordersList.innerHTML = `
+            <div style="text-align:center; padding:60px; background:white; border-radius:12px;">
+              <p style="font-size:48px;">📦</p>
+              <h3>No orders yet</h3>
+              <a href="products.html" class="btn-primary" style="margin-top:16px;">
+                Start Shopping
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        ordersList.innerHTML = orders.map(order => `
+          <div class="order-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div>
+                <p style="font-size:13px; color:#999;">Order ID</p>
+                <p style="font-size:14px; font-weight:600;">${order._id}</p>
+              </div>
+              <span class="order-status ${order.status === 'delivered' ? 'delivered' : ''}">
+                ${order.status.toUpperCase()}
+              </span>
+            </div>
+            <div style="border-top:1px solid #f0f0f0; padding-top:16px;">
+              ${order.items.map(item => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                  <p>${item.name} × ${item.quantity}</p>
+                  <p style="font-weight:600;">$${(item.price * item.quantity).toFixed(2)}</p>
+                </div>
+              `).join('')}
+            </div>
+            <div style="border-top:1px solid #f0f0f0; padding-top:16px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <p style="font-size:13px; color:#999;">Shipping to</p>
+                <p style="font-size:14px;">${order.shippingAddress.fullName}, ${order.shippingAddress.city}</p>
+              </div>
+              <div style="text-align:right;">
+                <p style="font-size:13px; color:#999;">Total</p>
+                <p style="font-size:20px; font-weight:700; color:#e94560;">$${order.totalPrice.toFixed(2)}</p>
+              </div>
+            </div>
+            <p style="font-size:12px; color:#999; margin-top:12px;">
+              Placed on: ${new Date(order.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        showAlert('Error loading orders.', 'error');
+      }
+    }
+
+    loadOrders();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — ShopEase</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+  <svg width="280" height="75" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(8, 8)">
+      <rect x="0" y="18" width="48" height="40" rx="5" fill="#e94560"/>
+      <path d="M8 18 Q8 4 24 4 Q40 4 40 18" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="14" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+      <circle cx="34" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+    </g>
+    <text x="68" y="52" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#ffffff">Shop</text>
+    <text x="140" y="52" font-family="Georgia, serif" font-size="32" font-weight="400" fill="#e94560">Ease</text>
+  </svg>
+</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">🛒 Cart <span id="cartCount">0</span></a>
+      <a href="orders.html">My Orders</a>
+<a href="login.html" id="loginBtn">Login</a>
+      <a href="#" id="logoutBtn" style="display:none">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Login Form -->
+  <div class="form-container">
+    <h2>Welcome Back</h2>
+    <div class="alert" id="alert"></div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="email" placeholder="your@email.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+    <button class="form-submit" onclick="loginUser()">Login</button>
+    <div class="form-link">
+      Don't have an account? <a href="register.html">Register here</a>
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script>
+    async function loginUser() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showAlert('Please fill in all fields', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAlert(data.message, 'error');
+          return;
+        }
+localStorage.removeItem('cart');
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        showAlert('Login successful! Redirecting...', 'success');
+
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
+
+      } catch (error) {
+        showAlert('Server error. Please try again.', 'error');
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — ShopEase</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+  <svg width="280" height="75" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(8, 8)">
+      <rect x="0" y="18" width="48" height="40" rx="5" fill="#e94560"/>
+      <path d="M8 18 Q8 4 24 4 Q40 4 40 18" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="14" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+      <circle cx="34" cy="34" r="4" fill="#ffffff" opacity="0.9"/>
+    </g>
+    <text x="68" y="52" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#ffffff">Shop</text>
+    <text x="140" y="52" font-family="Georgia, serif" font-size="32" font-weight="400" fill="#e94560">Ease</text>
+  </svg>
+</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">🛒 Cart <span id="cartCount">0</span></a>
+      <a href="orders.html">My Orders</a>
+<a href="login.html" id="loginBtn">Login</a>
+      <a href="#" id="logoutBtn" style="display:none">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>🛒 Your Cart</h1>
+  </div>
+
+  <!-- Cart Content -->
+  <div class="cart-container">
+    <div class="alert" id="alert"></div>
+    <div id="cartItems"></div>
+
+    <!-- Shipping Form -->
+    <div id="shippingForm" style="display:none; background:white; padding:32px; border-radius:12px; margin-top:24px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <h3 style="margin-bottom:24px;">Shipping Details</h3>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="fullName" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" id="address" placeholder="Street address">
+      </div>
+      <div class="form-group">
+        <label>City</label>
+        <input type="text" id="city" placeholder="City">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" id="phone" placeholder="03xxxxxxxxx">
+      </div>
+      <button class="form-submit" onclick="placeOrder()">
+        Place Order
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 ShopEase. All rights reserved.</p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script>
+    function loadCart() {
+      const cart = getCart();
+      const cartItems = document.getElementById('cartItems');
+      const shippingForm = document.getElementById('shippingForm');
+
+      if (cart.length === 0) {
+        cartItems.innerHTML = `
+          <div style="text-align:center; padding:60px; background:white; border-radius:12px;">
+            <p style="font-size:48px;">🛒</p>
+            <h3>Your cart is empty</h3>
+            <a href="products.html" class="btn-primary" style="margin-top:16px;">
+              Shop Now
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+      cartItems.innerHTML = cart.map((item, index) => `
+        <div class="cart-item">
+          <div>
+            <h3>${item.name}</h3>
+            <p style="color:#666;">$${item.price} each</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button onclick="changeQty(${index}, -1)" 
+              style="width:32px; height:32px; border:1px solid #ddd; border-radius:50%; cursor:pointer; background:white; font-size:18px;">
+              −
+            </button>
+            <span style="font-size:18px; font-weight:600;">${item.quantity}</span>
+            <button onclick="changeQty(${index}, 1)" 
+              style="width:32px; height:32px; border:1px solid #ddd; border-radius:50%; cursor:pointer; background:white; font-size:18px;">
+              +
+            </button>
+            <button onclick="removeItem(${index})" 
+              style="color:#e94560; background:none; border:none; cursor:pointer; font-size:14px; font-weight:600;">
+              Remove
+            </button>
+          </div>
+          <div style="font-size:20px; font-weight:700; color:#e94560;">
+            $${(item.price * item.quantity).toFixed(2)}
+          </div>
+        </div>
+      `).join('');
+
+      cartItems.innerHTML += `
+        <div class="cart-total">
+          <p style="color:#666; margin-bottom:8px;">Total Items: ${cart.reduce((s,i) => s+i.quantity, 0)}</p>
+          <h3>Total: $${total.toFixed(2)}</h3>
+          <button onclick="proceedToCheckout()" class="btn-primary" style="margin-top:16px;">
+            Proceed to Checkout
+          </button>
+        </div>
+      `;
+
+      shippingForm.style.display = 'none';
+    }
+
+    function changeQty(index, change) {
+  const cart = getCart();
+  const item = cart[index];
+  const newQty = item.quantity + change;
+
+  if (newQty > item.stock) {
+    alert('Sorry! Only ' + item.stock + ' items available in stock.');
+    return;
+  }
+
+  if (newQty <= 0) {
+    cart.splice(index, 1);
+  } else {
+    cart[index].quantity = newQty;
+  }
+
+  saveCart(cart);
+  loadCart();
+}
+
+    function removeItem(index) {
+      const cart = getCart();
+      cart.splice(index, 1);
+      saveCart(cart);
+      loadCart();
+    }
+
+    function proceedToCheckout() {
+      if (!isLoggedIn()) {
+        showAlert('Please login to place an order', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      document.getElementById('shippingForm').style.display = 'block';
+      document.getElementById('shippingForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function placeOrder() {
+      const fullName = document.getElementById('fullName').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const phone = document.getElementById('phone').value;
+
+      if (!fullName || !address || !city || !phone) {
+        showAlert('Please fill in all shipping details', 'error');
+        return;
+      }
+
+      const cart = getCart();
+      const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+      const orderData = {
+        items: cart.map(item => ({
+          product: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        shippingAddress: { fullName, address, city, phone },
+        totalPrice
+      };
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showAlert(data.message, 'error');
+          return;
+        }
+
+        saveCart([]);
+        showAlert('🎉 Order placed successfully!', 'success');
+        setTimeout(() => window.location.href = 'orders.html', 1500);
+
+      } catch (error) {
+        showAlert('Server error. Please try again.', 'error');
+      }
+    }
+
+    loadCart();
+  </script>
+
+</body>
+</html>
