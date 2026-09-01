@@ -21,7 +21,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 
-const MONGO_URI = "mongodb://areeshaasyeda06_db_user:UmCsP5P2F07yCcC7@ac-vcdytut-shard-00-00.b9iecbh.mongodb.net:27017,ac-vcdytut-shard-00-01.b9iecbh.mongodb.net:27017,ac-vcdytut-shard-00-02.b9iecbh.mongodb.net:27017/ecommerce?ssl=true&replicaSet=atlas-dpoeig-shard-0&authSource=admin&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URI)
   .then(() => {
